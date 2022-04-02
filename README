@@ -1,0 +1,31 @@
+Elden Keys - Elden Ring Linux keybard macros
+Copyright Shaun Simpson 2022
+Released under GPLv2 license.
+
+Elden Ring Key Binds
+    1 = ESC
+    2 = E+UpArrow
+    3 = E+RightArrow
+    4 = E+DownArrow
+    5 = E+LeftArrow
+    CAPS = LeftShift
+
+Launch in terminal like:
+    ./EldenKeys /dev/input/by-id/usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd
+
+Where you will need to find your keyboard in /dev/input/by-id/
+But we have the same keyboards  (edited)
+
+NOTE: You will need to add your user to the 'input' group if you do not want to run it as root.
+
+Building:
+    Use the script make.sh
+    or
+    gcc EldenKeys.c -lX11 -lc -lXmu -o EldenKeys
+
+Depends on:
+    libx11-dev
+    libxmu-dev
+    libc
+    
+
