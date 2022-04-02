@@ -13,6 +13,9 @@
         4 = E+DownArrow
         5 = E+LeftArrow
         CAPS = LeftShift
+        
+    Launch in terminal like:
+        ./EldenKeys /dev/input/by-id/usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd        
 */
 #include <stdio.h>
 #include <stdlib.h>
