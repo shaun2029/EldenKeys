@@ -271,7 +271,7 @@ int TargetWindowFocused(Display* d, Window w){
         found = -1;
     }
   }else{
-        printf("ERROR: XGetWMName\n");
+        //printf("ERROR: XGetWMName\n");
         found = -1;
   }
   
