@@ -374,29 +374,26 @@ int main(int argc, char **argv)
             if (targetFocused) { 
                 //printf("key: %s, code: %d, type: %d, value: %d\n", qwerty_map[event.code], event.code, event.type, event.value);//xcb_key_symbols_get_keysym(symbols, event.code, 0)));
 #ifdef SHAUN            
-                /* One released - Press E + 9 */
-                if (SendTwoKeys(fd, 2, 1, 18, 10, event.code, last_code, &last_code_time)) {
+                /* One released - Press ESC */
+                if (SendTwoKeys(fd, 2, event.value, 18, 10, event.code, last_code, &last_code_time)) {
                     last_code = event.code; 
                 }
                 /* Two released - press E + 7 */
-                else if (SendTwoKeys(fd, 3, 1, 18, 8, event.code, last_code, &last_code_time)) {
+                else if (SendTwoKeys(fd, 3, event.value, 18, 8, event.code, last_code, &last_code_time)) {
                     last_code = event.code; 
                 }
-                /* Three released - press E + UP */
-                else if (SendTwoKeys(fd, 4, 1, 18, 103, event.code, last_code, &last_code_time)) {
+                /* Three released - press E + DOWN */
+                else if (SendTwoKeys(fd, 4, event.value, 18, 108, event.code, last_code, &last_code_time)) {
                     last_code = event.code; 
                 }
-                /* Four released - press E + DOWN */
-                else if (SendTwoKeys(fd, 5, 1, 18, 108, event.code, last_code, &last_code_time)) {
+                /* Four released - press E + LEFT */
+                else if (SendTwoKeys(fd, 5, event.value, 18, 105, event.code, last_code, &last_code_time)) {
                     last_code = event.code; 
                 }
-#endif
-
-
+#else
                 /* One released - Press ESC */
                 if (SendOneKey(fd, 2, event.value, 1, event.code, last_code, NULL)) {
                     last_code = event.code; 
-                    gettimeofday(&last_code_time, NULL);
                 }
                 /* Two released - press E + UP */
                 else if (SendTwoKeys(fd, 3, event.value, 18, 103, event.code, last_code, &last_code_time)) {
@@ -415,14 +412,23 @@ int main(int argc, char **argv)
                     last_code = event.code; 
                 }
                 /* CAPS pressed - Press LSHIFT */
-                if (PressOneKey(fd, 58, event.value, 42, event.code, last_code)) {
+                else if (PressOneKey(fd, 58, event.value, 42, event.code, last_code)) {
                     last_code = event.code; 
                 }
                 /* CAPS pressed - Press LSHIFT */
-                if (ReleaseOneKey(fd, 58, event.value, 42, event.code, last_code)) {
+                else if (ReleaseOneKey(fd, 58, event.value, 42, event.code, last_code)) {
                     last_code = event.code; 
                 }
-
+                /* Eight released - Press UP */
+                else if (SendOneKey(fd, 8, event.value, 103, event.code, last_code, NULL)) {
+                    last_code = event.code; 
+                    gettimeofday(&last_code_time, NULL);
+                }
+                /* Nine released - Press RIGHT */
+                else if (SendOneKey(fd, 10, event.value, 106, event.code, last_code, NULL)) {
+                    last_code = event.code; 
+                }
+#endif
             }
         }
         else {
