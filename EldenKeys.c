@@ -267,10 +267,12 @@ int TargetWindowFocused(Display* d, Window w){
             //printf("Target Focused: %s\n", targetWindowName);
         }
     }else{
-        //printf("ERROR: XmbTextPropertyToTextList\n");
+        printf("ERROR: XmbTextPropertyToTextList\n");
+        found = -1;
     }
   }else{
-        //printf("ERROR: XGetWMName\n");
+        printf("ERROR: XGetWMName\n");
+        found = -1;
   }
   
   return found;
@@ -320,9 +322,10 @@ Window get_focus_window(Display* d){
 
 int main(int argc, char **argv)
 {
-    Display *display;
+    Display *display = NULL;
     Window root_window;
     struct input_event event;
+    int windowActive = 0;
 
     printf("EldenKeys v1.0\n");
 
@@ -335,42 +338,67 @@ int main(int argc, char **argv)
       return 0;
     }
 
-    display = XOpenDisplay(0);
-    if (!display) {
-        printf("Errror opening X11 display!\n");
-        return -2;
-    }
-    
-    root_window = DefaultRootWindow(display);
-    
-    // for XmbTextPropertyToTextList
-    setlocale(LC_ALL, ""); // see man locale    
-
-    int fd = open(argv[1], O_RDWR);
+    int fd = -1;
     size_t stat;
-    if (fd < 0) {
-        printf("Errro open mouse:%s\n", strerror(errno));
-        return -1;
-    }
   
     unsigned short last_code = 0;
     struct timeval last_code_time, lastTargetTime, targetTime, timeDiff;
     
-    int targetFocused = get_focus_window(display);
-    gettimeofday(&lastTargetTime, NULL);
+    int targetFocused = 0, bytes;
     
     while (1) {
-        int bytes = read(fd, &event, sizeof(struct input_event));
-        
         gettimeofday(&targetTime, NULL);
         timersub(&targetTime, &lastTargetTime, &timeDiff); 
         
         if (timeDiff.tv_sec > 2) {
-            targetFocused = get_focus_window(display);
-            gettimeofday(&lastTargetTime, NULL);
+            if (!display) {
+                display = XOpenDisplay(0);
+                if (!display) {
+                    printf("Errror opening X11 display!\n");
+                    return -2;
+                }
+                
+                root_window = DefaultRootWindow(display);
+                
+                // for XmbTextPropertyToTextList
+                setlocale(LC_ALL, ""); // see man locale    
+            }
+
+            if (fd < 0) {
+                fd = open(argv[1], O_RDWR);
+                if (fd < 0) {
+                    //printf("Errro open mouse:%s\n", strerror(errno));
+                }
+                else {
+                    printf("Successfully opened mouse:%s\n", argv[1]);
+                }
+            }
+          
+            if (display) {
+                targetFocused = get_focus_window(display);
+                gettimeofday(&lastTargetTime, NULL);
+                
+                if (targetFocused < 0) {
+                    if (display) {
+                        printf("X11 ERROR: Closing display ...");
+                        XCloseDisplay(display);
+                        display = NULL;
+                        printf(" DONE\n");
+                    }
+                    
+                    targetFocused = 0;
+                }
+            }
+            else {
+                    targetFocused = 0;
+            }
+        }
+        
+        if (fd >= 0) {
+            bytes = read(fd, &event, sizeof(struct input_event));
         }
 
-        if (bytes == sizeof(struct input_event) && (event.type == EV_KEY)) {
+        if ((fd >= 0) && (bytes == sizeof(struct input_event)) && (event.type == EV_KEY)) {
             if (targetFocused) { 
                 //printf("key: %s, code: %d, type: %d, value: %d\n", qwerty_map[event.code], event.code, event.type, event.value);//xcb_key_symbols_get_keysym(symbols, event.code, 0)));
 #ifdef SHAUN            
@@ -430,8 +458,28 @@ int main(int argc, char **argv)
                 }
 #endif
             }
+            else {
+                if (windowActive) {
+                    windowActive = 0;
+                    printf("Deactivated!\n");
+                    
+                    if (display) {
+                        printf("Closing display ...");
+                        XCloseDisplay(display);
+                        display = NULL;
+                        printf(" DONE\n");
+                    }
+                }
+            }
         }
         else {
+            if ((bytes < 0) && (fd >= 0)) {
+                printf("Closing keyboard ...");
+                close(fd);
+                fd = -1;
+                printf(" DONE\n");
+            }
+
             usleep(32000);
         }
     }
