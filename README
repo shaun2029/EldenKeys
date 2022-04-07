@@ -12,7 +12,6 @@ Launch in terminal like:
     ./EldenKeys /dev/input/by-id/usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd
 
 Where you will need to find your keyboard in /dev/input/by-id/
-But we have the same keyboards  (edited)
 
 NOTE: You will need to add your user to the 'input' group if you do not want to run it as root.
 
