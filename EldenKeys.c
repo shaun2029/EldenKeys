@@ -380,10 +380,10 @@ int main(int argc, char **argv)
                 
                 if (targetFocused < 0) {
                     if (display) {
-                        printf("X11 ERROR: Closing display ...");
+                        //printf("X11 ERROR: Closing display ...");
                         XCloseDisplay(display);
                         display = NULL;
-                        printf(" DONE\n");
+                        //printf(" DONE\n");
                     }
                     
                     targetFocused = 0;
