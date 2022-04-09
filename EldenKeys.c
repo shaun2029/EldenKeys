@@ -320,6 +320,19 @@ Window get_focus_window(Display* d){
   return targetFocused;
 }
 
+pid_t GetPIDbyName(char* ps_name)
+{
+
+    FILE *fp;
+    char *cmd=(char*)calloc(1,200);
+    sprintf(cmd,"pidof -s %s",ps_name);
+
+    fp=popen(cmd,"r");
+    fread(cmd,1,200,fp);
+    fclose(fp);
+    return atoi(cmd);
+}
+
 int main(int argc, char **argv)
 {
     Display *display = NULL;
@@ -327,7 +340,7 @@ int main(int argc, char **argv)
     struct input_event event;
     int windowActive = 0;
 
-    printf("EldenKeys v1.0\n");
+    printf("EldenKeys v1.1\n");
 
     if (argc == 2) {
       printf("Using input event device: %s\n", argv[1]);
@@ -346,6 +359,16 @@ int main(int argc, char **argv)
     
     int targetFocused = 0, bytes;
     
+    printf("Waiting for Elden Ring .... ");
+    fflush(stdout);
+    while (1) {
+        if (GetPIDbyName("eldenring.exe") > 0) {
+            break;
+        }
+        usleep(5000000);
+    }
+    printf("DONE\n");
+
     while (1) {
         gettimeofday(&targetTime, NULL);
         timersub(&targetTime, &lastTargetTime, &timeDiff); 
