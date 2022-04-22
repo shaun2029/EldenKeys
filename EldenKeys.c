@@ -34,6 +34,7 @@
 #define SKIP_KEY_TIME 2
 
 char targetWindowName[] = "ELDEN RING™";
+Bool xerror = False;
 
 char *qwerty_map[] = {"", "ESC", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     "0", "-", "=", "BACKSPACE", "TAB", "q", "w",
@@ -247,6 +248,12 @@ int SendTwoKeys(int fd, unsigned short searchCode, int eventValue,
     return 0;
 }
 
+int handle_error(Display* display, XErrorEvent* error){
+  printf("ERROR: X11 error\n");
+  xerror = True;
+  return 1;
+}
+
 // (XFetchName cannot get a name with multi-byte chars)
 int TargetWindowFocused(Display* d, Window w){
   XTextProperty prop;
@@ -261,7 +268,7 @@ int TargetWindowFocused(Display* d, Window w){
     char **list = NULL;
     result = XmbTextPropertyToTextList(d, &prop, &list, &count); // see man
     if(result == Success){
-        //printf("\t%s\n", list[0]);
+        //printf("Focused Window: %s\n", list[0]);
         if (strcmp(list[0], targetWindowName) == 0) {
             found = 1;        
             //printf("Target Focused: %s\n", targetWindowName);
@@ -271,35 +278,11 @@ int TargetWindowFocused(Display* d, Window w){
         found = -1;
     }
   }else{
-        //printf("ERROR: XGetWMName\n");
-        found = -1;
+      //printf("ERROR: XGetWMName\n");
+      found = -1;
   }
   
   return found;
-}
-
-Window get_top_window(Display* d, Window start){
-  Window w = start;
-  Window parent = start;
-  Window root = None;
-  Window *children;
-  unsigned int nchildren;
-  Status s;
-
-  //printf("getting top window ... \n");
-  while (parent != root) {
-    w = parent;
-    s = XQueryTree(d, w, &root, &parent, &children, &nchildren); // see man
-
-    if (s)
-      XFree(children);
-
-    //printf("  get parent (window: %d)\n", (int)w);
-  }
-
-  //printf("success (window: %d)\n", (int)w);
-
-  return w;
 }
 
 Window get_focus_window(Display* d){
@@ -309,11 +292,13 @@ Window get_focus_window(Display* d){
   //printf("getting input focus window ... ");
   XGetInputFocus(d, &w, &revert_to); // see man
   
-  if(w == None){
+  if(xerror){
+    printf("get_focus_window fail\n");
+    exit(1);
+  }else if(w == None){
     //printf("no focus window\n");
   }else{
     //printf("success (window: %d)\n", (int)w);
-    w = get_top_window(d, w);
     targetFocused = TargetWindowFocused(d, w);
   }
 
@@ -340,7 +325,7 @@ int main(int argc, char **argv)
     struct input_event event;
     int windowActive = 0;
 
-    printf("EldenKeys v1.1\n");
+    printf("EldenKeys v1.2\n");
 
     if (argc == 2) {
       printf("Using input event device: %s\n", argv[1]);
@@ -384,16 +369,17 @@ int main(int argc, char **argv)
                 root_window = DefaultRootWindow(display);
                 
                 // for XmbTextPropertyToTextList
-                setlocale(LC_ALL, ""); // see man locale    
+                setlocale(LC_ALL, ""); // see man locale 
+                XSetErrorHandler(handle_error);       
             }
 
             if (fd < 0) {
                 fd = open(argv[1], O_RDWR);
                 if (fd < 0) {
-                    //printf("Errro open mouse:%s\n", strerror(errno));
+                    //printf("Errro open keyboard:%s\n", strerror(errno));
                 }
                 else {
-                    printf("Successfully opened mouse:%s\n", argv[1]);
+                    printf("Successfully opened keyboard:%s\n", argv[1]);
                 }
             }
           

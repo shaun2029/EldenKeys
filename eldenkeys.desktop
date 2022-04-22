@@ -2,7 +2,7 @@
 Type=Application
 Name=Elden Keys
 Comment=Elden Ring keyboard macros
-Exec=EldenKeys /dev/input/by-id/usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd
+Exec=elden-keys-start usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd
 Icon=eldenkeys
 Terminal=false
 Categories=Utility;DesktopUtility;
