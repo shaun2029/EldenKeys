@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#"Logitech"
+KBDNAME="$1"
+APPNAME=`basename $0`
+RUNNING=`ps -Af | grep "$0" | wc -l`    
+if [ "$RUNNING" -gt "3" ]; then
+    echo "Already running, terminating."
+    exit 0
+fi
+
+if [ "$KBDNAME" = "" ] || [ "$KBDNAME" = "-h" ] || [ "$KBDNAME" = "--help" ]; then
+    echo "Elden Keys Start - Starts Elden Keys when eldenring.exe is running."
+    echo "Usage: $APPNAME \"KEYBOARD_NAME\""
+    echo "e.g. $APPNAME \"usb-Logitech_G513_Carbon_Tactile_056E38673132-event-kbd\""
+    echo ""
+    echo "Use keyboard name from list of device names:"
+    ls /dev/input/by-id/ | grep -event-kbd
+    exit 0
+fi
+
+killall EldenKeys 2> /dev/null
+
+EVENT=`ls /dev/input/by-id/ | grep -event-kbd | grep -A 6 "$KBDNAME"`
+echo "Using keyboard: $KBDNAME"
+echo "Using keyboard input: $EVENT"
+
+if [ "$EVENT" = "" ]; then
+    echo "Error no keyboard found."
+    echo "Usage: $APPNAME \"KEYBOARD_NAME\""
+    echo "e.g. $APPNAME \"Logitech\""
+    echo ""
+    echo "Use keyboard name from list of device names:"
+    ls /dev/input/by-id/ | grep -event-kbd
+    exit 0
+fi
+
+echo "Waiting for Elden Ring ..."
+while true;
+do
+    RUNNING=`ps -A | grep eldenring.exe`    
+    if [ "$RUNNING" != "" ]; then
+        break
+    fi
+    sleep 5
+done
+
+while true;
+do
+    bash -c "EldenKeys /dev/input/by-id/$EVENT"
+    sleep 10
+done
+
